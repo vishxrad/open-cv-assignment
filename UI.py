@@ -10,6 +10,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap
 import cv2
 import numpy as np
+import time
 
 # Assuming q3.py exists in the same directory
 try:
@@ -480,23 +481,66 @@ class MainWindow(QMainWindow):
         return True
 
     def find_corners(self):
-        """Find and display chessboard corners for the first image in the folder."""
+        """Find and display chessboard corners for all images in a video-like sequence."""
         if not self.image_files:
             print("Please load a folder with images first.")
             return
 
-        fname = self.image_files[0]
-        image = cv2.imread(fname)
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        
         nx, ny = 11, 8
-        ret, corners = cv2.findChessboardCorners(gray, (nx, ny))
+        print(f"Starting corner detection sequence for {len(self.image_files)} images...")
         
-        if ret:
-            cv2.drawChessboardCorners(image, (nx, ny), corners, ret)
-            self._show_image('Chessboard Corners', image)
-        else:
-            print("Could not find corners in the first image.")
+        # Create a single, reusable dialog window
+        dlg = QDialog(self)
+        lbl = QLabel(dlg)
+        layout = QVBoxLayout(dlg)
+        layout.addWidget(lbl)
+        dlg.setLayout(layout)
+        dlg.show() # Show the window once
+
+        found_count = 0
+        for i, fname in enumerate(self.image_files):
+            image = cv2.imread(fname)
+            if image is None:
+                print(f"Warning: Could not read image {fname}")
+                continue
+
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            ret, corners = cv2.findChessboardCorners(gray, (nx, ny))
+            
+            display_image = image.copy() # Work on a copy
+            title = f'Image {i+1}/{len(self.image_files)}'
+
+            if ret:
+                found_count += 1
+                cv2.drawChessboardCorners(display_image, (nx, ny), corners, ret)
+                title += ' (Corners Found)'
+            else:
+                title += ' (Corners NOT Found)'
+
+            # Update the dialog with the new image and title
+            dlg.setWindowTitle(title)
+            
+            # Convert image to pixmap to display in the label
+            rgb_image = cv2.cvtColor(display_image, cv2.COLOR_BGR2RGB)
+            h, w, ch = rgb_image.shape
+            qimg = QImage(rgb_image.data, w, h, ch * w, QImage.Format_RGB888)
+            pixmap = QPixmap.fromImage(qimg)
+            
+            # Scale if necessary
+            if pixmap.width() > 1000 or pixmap.height() > 800:
+                 pixmap = pixmap.scaled(1000, 800, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+
+            lbl.setPixmap(pixmap)
+            dlg.adjustSize()
+            
+            # Process UI events and pause briefly to create the video effect
+            QApplication.processEvents()
+            time.sleep(0.5) # Pause for 500ms
+
+        print(f"Finished. Found corners in {found_count}/{len(self.image_files)} images.")
+        
+        # Close the dialog automatically when the loop is finished
+        dlg.close()
 
     def find_intrinsic(self):
         """Calculate and display the intrinsic matrix."""
