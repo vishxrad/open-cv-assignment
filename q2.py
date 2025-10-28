@@ -11,12 +11,12 @@ letters = ['O', 'P', 'E', 'N', 'C', 'V']
 # Define the board positions (x, y) for each letter
 # These are in chessboard coordinates (0-10 for x, 0-7 for y)
 letter_positions = [
-    (7, 5),  # C position
-    (4, 5),  # L position
-    (1, 5),  # A position
-    (7, 2),  # U position
-    (4, 2),  # D position
-    (1, 2),  # E position
+    (7, 5),  
+    (4, 5),  
+    (1, 5), 
+    (7, 2),  
+    (4, 2),  
+    (1, 2),  
 ]
 
 # Load all letter point sets

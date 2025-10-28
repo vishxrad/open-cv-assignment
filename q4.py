@@ -18,6 +18,12 @@ sift = cv2.SIFT_create()
 
 # Detect keypoints and compute descriptors
 keypointsL, descriptorsL = sift.detectAndCompute(grayL, None)
+
+
+leftKeypoints = cv2.drawKeypoints(grayL, keypointsL, None, color=(0,255,0))#flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
+
+cv2.imshow('Good Keypoint Matches', leftKeypoints)
+
 keypointsR, descriptorsR = sift.detectAndCompute(grayR, None)
 
 # Match descriptors using BFMatcher with k-Nearest Neighbors
@@ -34,6 +40,7 @@ for m, n in matches:
 # The output window title is changed to be more descriptive
 image = cv2.drawMatchesKnn(grayL, keypointsL, grayR, keypointsR, good_matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
-cv2.imshow('Good Keypoint Matches', image)
+
+
 cv2.waitKey(10000)
 cv2.destroyAllWindows()
